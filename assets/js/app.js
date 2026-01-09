@@ -406,48 +406,42 @@ if (isMobile) {
 
                     // Init Smooth Scrollbar
                     // ======================
-                    Scrollbar.init(document.querySelector("#scroll-container"), {
-                        damping: 0.06,
-                        renderByPixel: true,
+                    const bodyScrollBar = Scrollbar.init(document.querySelector("#scroll-container"), {
+                        damping: 0.08,
+                        renderByPixel: false,
                         continuousScrolling: true,
                         alwaysShowTracks: true
                     });
 
 
-                    // // 3rd party library setup
-                    // // More info: https://greensock.com/docs/v3/Plugins/ScrollTrigger/static.scrollerProxy()
-                    // // ========================
-                    // let scrollPositionX = 0,
-                    //     scrollPositionY = 0,
-                    //     bodyScrollBar = Scrollbar.init(document.getElementById("scroll-container"));
+                    // 3rd party library setup
+                    // More info: https://greensock.com/docs/v3/Plugins/ScrollTrigger/static.scrollerProxy()
+                    // ========================
+                    
+                    // tell ScrollTrigger to use these proxy getter/setter methods for the "#scroll-container" element:
+                    ScrollTrigger.scrollerProxy("#scroll-container", {
+                        scrollTop(value) {
+                            if (arguments.length) {
+                                bodyScrollBar.scrollTop = value;
+                            }
+                            return bodyScrollBar.scrollTop;
+                        },
+                        getBoundingClientRect() {
+                            return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+                        },
+                        // Fixed markers follow the scroll container
+                        pinType: document.querySelector("#scroll-container").style.transform ? "transform" : "fixed"
+                    });
 
-                    // bodyScrollBar.addListener(({ offset }) => {
-                    //     scrollPositionX = offset.x;
-                    //     scrollPositionY = offset.y;
-                    // });
-
-                    // bodyScrollBar.setPosition(0, 0);
-                    // bodyScrollBar.track.xAxis.element.remove();
-
-                    // // tell ScrollTrigger to use these proxy getter/setter methods for the "body" element:
-                    // ScrollTrigger.scrollerProxy("body", {
-                    //     scrollTop(value) {
-                    //         if (arguments.length) {
-                    //             bodyScrollBar.scrollTop = value;
-                    //         }
-                    //         return bodyScrollBar.scrollTop;
-                    //     }
-                    // });
-
-                    // // when smooth scroller updates, tell ScrollTrigger to update() too. 
-                    // bodyScrollBar.addListener(ScrollTrigger.update);
+                    // when smooth scroller updates, tell ScrollTrigger to update() too. 
+                    bodyScrollBar.addListener(ScrollTrigger.update);
 
 
                     // Move "tt-header" out of "scroll-container"
                     // Expl: Since Smooth Scrollbar doesn't support element fixed position inside "scroll-container" move the "tt-header" out of it.
                     // ==========================================
-                    if ($("#tt-header").hasClass("tt-header-fixed")) {
-                        $("#tt-header").prependTo($("#body-inner"));
+                    if ($("#tt-header").length) {
+                        $("#tt-header").prependTo($("body"));
                     }
 
 
@@ -521,8 +515,8 @@ if (isMobile) {
             $(".scroll-to-top").on("click", function () {
                 if (!isMobile) { // Not for mobile devices!
                     if ($("body").hasClass("tt-smooth-scroll")) {
-                        var $scrollbar = Scrollbar.init(document.getElementById("scroll-container"));
-                        gsap.to($scrollbar, { duration: 1.5, scrollTo: { y: 0, autoKill: true }, ease: Expo.easeInOut });
+                        var bodyScrollBar = Scrollbar.get(document.getElementById("scroll-container"));
+                        bodyScrollBar.scrollTo(0, 0, 1500);
                     } else {
                         $("html,body").animate({ scrollTop: 0 }, 800);
                     }
